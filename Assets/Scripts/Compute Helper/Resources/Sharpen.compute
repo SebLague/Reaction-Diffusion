@@ -1,0 +1,23 @@
+﻿#pragma kernel Sharpen
+
+RWTexture2D<float4> Source;
+RWTexture2D<float4> Result;
+int width;
+int height;
+
+[numthreads(8,8,1)]
+void Sharpen (int3 id : SV_DispatchThreadID)
+{
+	if (id.x >= width || id.y >= height) {
+		return;
+	}
+
+	float4 centre = Source[id.xy];
+	float4 up = Source[int2(id.x, min(id.y + 1, height-1))];
+	float4 down = Source[int2(id.x, max(id.y - 1, 0))];
+	float4 left = Source[int2(max(id.x - 1, 0), id.y)];
+	float4 right = Source[int2(min(id.x + 1, width-1), id.y)];
+
+	float4 result = centre * 5 - (up + down + left + right);
+	Result[id.xy] = result;
+}
